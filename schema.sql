@@ -14,3 +14,10 @@ create table if not exists legendas (
   caption text not null,
   created_at timestamptz default now()
 );
+
+-- Libera acesso público às tabelas (necessário para a anon key funcionar)
+alter table comuns enable row level security;
+alter table legendas enable row level security;
+
+create policy "acesso_publico_comuns" on comuns for all using (true) with check (true);
+create policy "acesso_publico_legendas" on legendas for all using (true) with check (true);

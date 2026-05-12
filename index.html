@@ -693,12 +693,11 @@ function copyCaption(id) {
 // INIT
 // ─────────────────────────────────────────────
 async function init() {
-  if (!CFG.isReady()) {
+  if (!CFG.sbUrl() || !CFG.sbKey()) {
     document.getElementById('setup-banner').classList.remove('hidden');
-    document.getElementById('news-list').innerHTML = '';
-    return;
+  } else {
+    document.getElementById('setup-banner').classList.add('hidden');
   }
-  document.getElementById('setup-banner').classList.add('hidden');
   renderObservations();
   await renderNews();
 }
