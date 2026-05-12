@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notícias — Prefeitura de São Sebastião</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --surface-2: #f5f5f7;
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #aeaeb2;
+      --accent: #0071e3;
+      --accent-light: #e8f0fb;
+      --green: #34c759;
+      --green-light: #e9f9ed;
+      --red: #ff3b30;
+      --red-light: #fff0ef;
+      --border: #d2d2d7;
+      --radius: 18px;
+      --radius-sm: 10px;
+      --shadow: 0 2px 20px rgba(0,0,0,0.07);
+      --shadow-hover: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg); color: var(--text-primary);
+      line-height: 1.5; -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-inner {
+      max-width: 800px; margin: 0 auto; padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 34px; height: 34px; background: var(--accent);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    }
+    .logo svg { width: 18px; height: 18px; fill: #fff; }
+    .header-title { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
+    .header-subtitle { font-size: 12px; color: var(--text-secondary); }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-badge {
+      font-size: 12px; color: var(--text-secondary);
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 12px; white-space: nowrap;
+    }
+    .cfg-btn {
+      font-size: 12px; font-weight: 500; color: var(--text-secondary);
+      background: none; border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 12px; cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .cfg-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .cfg-btn.ok { color: var(--green); border-color: rgba(52,199,89,0.4); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal {
+      background: var(--surface); border-radius: var(--radius);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+      padding: 32px; max-width: 460px; width: 100%;
+    }
+    .modal-title { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 6px; }
+    .modal-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
+    .field-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .field-group { margin-bottom: 14px; }
+    .modal-input {
+      width: 100%; padding: 11px 14px; font-size: 13px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      outline: none; font-family: monospace; color: var(--text-primary);
+      transition: border-color 0.15s;
+    }
+    .modal-input:focus { border-color: var(--accent); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+    .modal-btn {
+      font-size: 14px; font-weight: 600; border: none;
+      border-radius: var(--radius-sm); padding: 10px 20px; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .modal-btn:hover { opacity: 0.82; }
+    .modal-btn-primary { background: var(--accent); color: #fff; }
+    .modal-btn-secondary { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border); }
+
+    main { max-width: 800px; margin: 0 auto; padding: 32px 24px 80px; }
+
+    .stats-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 32px; }
+    .stat-chip {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 16px;
+      display: flex; flex-direction: column; align-items: center; min-width: 80px;
+    }
+    .stat-value { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+    .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+
+    .section-header { margin-bottom: 16px; margin-top: 40px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+    .section-header:first-of-type { margin-top: 0; }
+    .section-header-text {}
+    .section-tag {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent); background: var(--accent-light);
+      border-radius: 6px; padding: 3px 10px; margin-bottom: 6px;
+    }
+    .section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+    .section-desc { font-size: 14px; color: var(--text-secondary); margin-top: 3px; }
+    .section-action {
+      flex-shrink: 0; font-size: 12px; font-weight: 500;
+      color: var(--text-tertiary); background: none;
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 4px 12px; cursor: pointer; transition: color 0.15s, border-color 0.15s;
+    }
+    .section-action:hover { color: var(--red); border-color: rgba(255,59,48,0.4); }
+
+    .news-list { display: flex; flex-direction: column; gap: 12px; }
+    .news-card {
+      background: var(--surface); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden; transition: box-shadow 0.2s;
+    }
+    .news-card:hover { box-shadow: var(--shadow-hover); }
+    .news-card.approved { border-left: 3px solid var(--green); }
+    .news-card-body { padding: 20px; }
+    .news-card-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 12px; margin-bottom: 10px;
+    }
+    .news-category {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--text-secondary); background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 3px 10px; white-space: nowrap; flex-shrink: 0;
+    }
+    .news-title { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; line-height: 1.35; }
+    .news-summary { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-top: 6px; }
+
+    .news-actions { display: flex; gap: 8px; margin-top: 16px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 600; border: none;
+      border-radius: 10px; padding: 8px 16px; cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-sim { background: var(--green); color: #fff; }
+    .btn-nao { background: var(--red-light); color: var(--red); border: 1px solid rgba(255,59,48,0.2); }
+
+    .caption-area { display: none; margin-top: 16px; }
+    .caption-area.visible { display: block; }
+    .caption-box {
+      background: var(--surface-2);
+      border-left: 3px solid var(--green);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 14px 16px;
+    }
+    .caption-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 8px;
+    }
+    .caption-text { font-size: 14px; color: var(--text-primary); line-height: 1.65; white-space: pre-line; }
+    .copy-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: 10px; font-size: 12px; font-weight: 600;
+      color: var(--accent); background: none; border: none;
+      cursor: pointer; padding: 0; transition: opacity 0.15s;
+    }
+    .copy-btn:hover { opacity: 0.7; }
+    .copy-btn.copied { color: var(--green); }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .comuns-wrapper { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .comuns-empty { padding: 32px; text-align: center; font-size: 14px; color: var(--text-tertiary); }
+    .comuns-item {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .comuns-item:last-child { border-bottom: none; }
+    .comuns-item:hover { background: var(--surface-2); }
+    .comuns-item-info { flex: 1; min-width: 0; }
+    .comuns-item-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .comuns-date { font-size: 11px; font-weight: 500; color: var(--text-tertiary); }
+    .comuns-category {
+      font-size: 11px; font-weight: 500; color: var(--text-secondary);
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2px 8px;
+    }
+    .comuns-title { font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.4; }
+    .comuns-remove-btn {
+      flex-shrink: 0; background: none; border: none;
+      color: var(--text-tertiary); font-size: 18px;
+      cursor: pointer; padding: 2px 6px; border-radius: 6px;
+      line-height: 1; transition: color 0.15s, background 0.15s;
+    }
+    .comuns-remove-btn:hover { color: var(--red); background: var(--red-light); }
+
+    .obs-box { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+    .obs-item { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .obs-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .obs-item:first-child { padding-top: 0; }
+    .obs-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 7px; flex-shrink: 0; }
+    .obs-text { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+
+    /* Setup banner */
+    .setup-banner {
+      background: #fff9e6; border: 1px solid #f0d060;
+      border-radius: var(--radius); padding: 16px 20px;
+      font-size: 14px; color: #7a5c00; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .setup-banner.hidden { display: none; }
+    .setup-banner strong { font-weight: 700; }
+
+    footer {
+      text-align: center; padding: 28px 24px;
+      font-size: 12px; color: var(--text-tertiary);
+      border-top: 1px solid var(--border);
+      max-width: 800px; margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Modal de configuração -->
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">Configuração</div>
+    <div class="modal-desc">Insira as credenciais do Supabase e sua chave da API Anthropic. São salvas localmente no navegador.</div>
+
+    <div class="field-group">
+      <div class="field-label">Supabase URL</div>
+      <input class="modal-input" id="input-sb-url" type="text" placeholder="https://xxxx.supabase.co" />
+    </div>
+    <div class="field-group">
+      <div class="field-label">Supabase Anon Key</div>
+      <input class="modal-input" id="input-sb-key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+    </div>
+    <div class="field-group">
+      <div class="field-label">Anthropic API Key</div>
+      <input class="modal-input" id="input-anthropic-key" type="password" placeholder="sk-ant-..." />
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-btn-primary" onclick="saveConfig()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="logo">
+        <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9V9h2v4zm0-6H9V5h2v2z"/></svg>
+      </div>
+      <div>
+        <div class="header-title">Prefeitura de São Sebastião</div>
+        <div class="header-subtitle">Monitor de Notícias · Instagram</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="cfg-btn" id="cfg-btn" onclick="openModal()">⚙ Configurar</button>
+      <div class="header-badge" id="header-date">—</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="setup-banner hidden" id="setup-banner">
+    ⚠ <span><strong>Configure as credenciais</strong> antes de usar — clique em <strong>⚙ Configurar</strong> no canto superior direito.</span>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-chip"><span class="stat-value" id="stat-total">0</span><span class="stat-label">Notícias hoje</span></div>
+    <div class="stat-chip"><span class="stat-value" id="stat-aprovadas">0</span><span class="stat-label">Aprovadas</span></div>
+    <div class="stat-chip"><span class="stat-value" id="stat-pendentes">0</span><span class="stat-label">Pendentes</span></div>
+    <div class="stat-chip"><span class="stat-value" id="stat-comuns">0</span><span class="stat-label">Comuns</span></div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-header-text">
+      <div class="section-tag">Hoje</div>
+      <div class="section-title">Notícias do dia</div>
+      <div class="section-desc">Clique em <strong>Sim</strong> para gerar a legenda ou <strong>Não</strong> para arquivar</div>
+    </div>
+    <button class="section-action" onclick="resetToday()">↺ Restaurar hoje</button>
+  </div>
+
+  <div class="news-list" id="news-list"></div>
+
+  <div class="section-header" style="margin-top: 48px;">
+    <div class="section-header-text">
+      <div class="section-tag">Arquivo</div>
+      <div class="section-title">Comuns</div>
+      <div class="section-desc">Notícias descartadas — permanecem até você remover manualmente</div>
+    </div>
+  </div>
+
+  <div class="comuns-wrapper">
+    <div id="comuns-list">
+      <div class="comuns-empty" id="comuns-empty">Nenhuma notícia descartada ainda.</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-header-text">
+      <div class="section-tag">Observações</div>
+      <div class="section-title">Notas do dia</div>
+    </div>
+  </div>
+  <div class="obs-box" id="obs-box"></div>
+
+</main>
+
+<footer id="footer-text">Gerado automaticamente · Prefeitura de São Sebastião</footer>
+
+<script>
+// ─────────────────────────────────────────────
+// DADOS DO DIA (substituídos pelo agendamento)
+// ─────────────────────────────────────────────
+const REPORT_DATE = "11 de maio de 2026";
+
+const NEWS = [
+  {
+    id: "N1152026155338",
+    title: "São Sebastião recebe certificação e integra novo SISMapa do Turismo Brasileiro 2026",
+    category: "Turismo",
+    summary: "São Sebastião se tornou a primeira cidade do Litoral Norte paulista a cumprir os novos requisitos do Mapa do Turismo Brasileiro, ingressando entre os 673 municípios reconhecidos pelo Ministério do Turismo. A certificação abre portas para investimentos federais prioritários na área."
+  },
+  {
+    id: "N1152026155120",
+    title: "PAT de São Sebastião disponibiliza mais de 100 vagas de emprego em diversas áreas nesta semana",
+    category: "Emprego",
+    summary: "O PAT abriu mais de 100 vagas em 44 funções diferentes, com destaque para oportunidades reservadas para pessoas com deficiência. As inscrições são presenciais nas três unidades do município, de segunda a sexta das 8h às 17h."
+  },
+  {
+    id: "N1152026155014",
+    title: "Fundo Social realiza ação especial de Dia das Mães e entrega cestas básicas para famílias em Cambury",
+    category: "Fundo Social",
+    summary: "O Fundo Social entregou cestas básicas, flores e chocolates para cerca de 75 famílias no Sertão de Cambury em homenagem ao Dia das Mães, reforçando o compromisso da gestão com populações vulneráveis."
+  },
+  {
+    id: "N1152026154755",
+    title: "Guarani Race movimenta Boraceia com esporte, natureza e cultura indígena em São Sebastião",
+    category: "Esporte",
+    summary: "A etapa YDJU da Guarani Race reuniu quase 700 participantes na Aldeia Guarani Rio Silveira, em Boraceia, combinando competição atlética com a cultura indígena Guarani. Atletas de São Sebastião dominaram o pódio."
+  },
+  {
+    id: "N1152026154654",
+    title: "Curso de Libras tem aula inaugural com ampla participação de munícipes em São Sebastião",
+    category: "Educação",
+    summary: "A Secretaria de Educação lançou um curso gratuito de Libras com mais de 120 participantes na aula inaugural, realizado em dois pontos da cidade. O objetivo é ampliar a inclusão da comunidade surda em espaços públicos."
+  },
+  {
+    id: "N1152026154537",
+    title: "Equipe de damas de São Sebastião conquista vaga na fase final dos Jogos Abertos da Juventude",
+    category: "Esporte",
+    summary: "A equipe de damas garantiu vaga na final do 41º Jogos Abertos da Juventude, que acontece em Barretos de 4 a 14 de junho. Oito jovens atletas representarão o município na competição estadual."
+  },
+  {
+    id: "N1152026154354",
+    title: "Projeto Jovens Naturalistas transforma praia em espaço de aprendizagem para estudantes",
+    category: "Educação",
+    summary: "A Prefeitura lançou o Projeto Jovens Naturalistas em parceria com o Cebimar/USP: 400 alunos do Ensino Fundamental terão aulas de ciências na praia sobre ecossistemas costeiros e sustentabilidade até agosto."
+  }
+];
+
+const OBSERVATIONS = [
+  "Site funcionando normalmente. As 7 notícias do dia estavam todas na primeira página do portal.",
+  "A notícia do Fundo Social menciona a ação ocorrendo em 15/05 (Dia das Mães) — pode ser publicada antecipando o evento.",
+  "A notícia da Guarani Race é sobre um evento que aconteceu no sábado (09/05) — verificar se já foi postada antes de repostar."
+];
+
+// ─────────────────────────────────────────────
+// CONFIG (localStorage — fica no browser)
+// ─────────────────────────────────────────────
+const LS = {
+  get: (k, fb = "") => { try { return localStorage.getItem(k) ?? fb; } catch { return fb; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }
+};
+
+const CFG = {
+  sbUrl:        () => LS.get("ss_sb_url"),
+  sbKey:        () => LS.get("ss_sb_key"),
+  anthropicKey: () => LS.get("ss_anthropic_key"),
+  isReady:      () => !!(LS.get("ss_sb_url") && LS.get("ss_sb_key") && LS.get("ss_anthropic_key"))
+};
+
+function openModal() {
+  document.getElementById('input-sb-url').value        = CFG.sbUrl();
+  document.getElementById('input-sb-key').value        = CFG.sbKey();
+  document.getElementById('input-anthropic-key').value = CFG.anthropicKey();
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+function saveConfig() {
+  LS.set("ss_sb_url",        document.getElementById('input-sb-url').value.trim());
+  LS.set("ss_sb_key",        document.getElementById('input-sb-key').value.trim());
+  LS.set("ss_anthropic_key", document.getElementById('input-anthropic-key').value.trim());
+  updateCfgBtn();
+  closeModal();
+  initSupabase();
+  init();
+}
+function updateCfgBtn() {
+  const btn = document.getElementById('cfg-btn');
+  if (CFG.isReady()) { btn.classList.add('ok'); btn.textContent = '✓ Configurado'; }
+  else               { btn.classList.remove('ok'); btn.textContent = '⚙ Configurar'; }
+}
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target.id === 'modal-overlay') closeModal();
+});
+
+// ─────────────────────────────────────────────
+// SUPABASE
+// ─────────────────────────────────────────────
+let db = null;
+function initSupabase() {
+  const url = CFG.sbUrl(), key = CFG.sbKey();
+  if (!url || !key) { db = null; return; }
+  db = supabase.createClient(url, key);
+}
+
+async function dbLoadComuns() {
+  if (!db) return [];
+  const { data, error } = await db.from('comuns').select('*').order('created_at', { ascending: false });
+  return error ? [] : (data || []);
+}
+async function dbInsertComun(item) {
+  if (!db) return;
+  await db.from('comuns').upsert({ id: item.id, title: item.title, category: item.category, report_date: item.report_date });
+}
+async function dbDeleteComun(id) {
+  if (!db) return;
+  await db.from('comuns').delete().eq('id', id);
+}
+async function dbDeleteComunsByDate(date) {
+  if (!db) return;
+  await db.from('comuns').delete().eq('report_date', date);
+}
+
+async function dbLoadLegenda(newsId) {
+  if (!db) return null;
+  const { data } = await db.from('legendas').select('caption').eq('news_id', newsId).single();
+  return data?.caption || null;
+}
+async function dbSaveLegenda(newsId, caption) {
+  if (!db) return;
+  await db.from('legendas').upsert({ news_id: newsId, report_date: REPORT_DATE, caption });
+}
+
+// ─────────────────────────────────────────────
+// GERAR LEGENDA VIA ANTHROPIC
+// ─────────────────────────────────────────────
+async function generateCaption(item) {
+  const key = CFG.anthropicKey();
+  if (!key) { openModal(); return null; }
+
+  const prompt = `Você é um assessor de comunicação do prefeito de São Sebastião (SP).
+
+Gere uma legenda para o Instagram do prefeito com base nesta notícia:
+
+Título: ${item.title}
+Resumo: ${item.summary}
+
+Requisitos:
+- Tom próximo, positivo e institucional
+- Use emojis apropriados
+- Inclua hashtags relevantes (#SãoSebastião e outras relacionadas ao tema)
+- Máximo de 150 palavras
+- Foque no benefício para o cidadão
+
+Responda APENAS com a legenda, sem introdução ou explicação.`;
+
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 400,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `Erro ${res.status}`);
+  }
+  const data = await res.json();
+  return data.content[0].text.trim();
+}
+
+// ─────────────────────────────────────────────
+// STATS
+// ─────────────────────────────────────────────
+let comunsCount = 0;
+function updateStats(discardedTodayCount) {
+  const approved  = document.querySelectorAll('.news-card.approved').length;
+  const pending   = NEWS.length - discardedTodayCount - approved;
+  document.getElementById('stat-total').textContent     = NEWS.length;
+  document.getElementById('stat-aprovadas').textContent  = approved;
+  document.getElementById('stat-pendentes').textContent  = Math.max(0, pending);
+  document.getElementById('stat-comuns').textContent     = comunsCount;
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+async function renderNews() {
+  const allComuns   = await dbLoadComuns();
+  comunsCount = allComuns.length;
+  const discardedToday = allComuns.filter(c => c.report_date === REPORT_DATE).map(c => c.id);
+
+  const list = document.getElementById('news-list');
+  list.innerHTML = '';
+
+  for (const item of NEWS) {
+    if (discardedToday.includes(item.id)) continue;
+
+    // já tem legenda salva no banco?
+    const savedCaption = await dbLoadLegenda(item.id);
+
+    const card = document.createElement('div');
+    card.className = 'news-card' + (savedCaption ? ' approved' : '');
+    card.id = 'card-' + item.id;
+    card.innerHTML = `
+      <div class="news-card-body">
+        <div class="news-card-top">
+          <div class="news-title">${item.title}</div>
+          <div class="news-category">${item.category}</div>
+        </div>
+        <div class="news-summary">${item.summary}</div>
+        <div class="news-actions" id="actions-${item.id}" style="${savedCaption ? 'display:none' : ''}">
+          <button class="btn btn-sim" id="btn-sim-${item.id}" onclick="approve('${item.id}')">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l7.22-6.72a.75.75 0 011.56 0z"/></svg>
+            Sim, gerar legenda
+          </button>
+          <button class="btn btn-nao" onclick="dismiss('${item.id}')">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg>
+            Não
+          </button>
+        </div>
+        <div class="caption-area${savedCaption ? ' visible' : ''}" id="caption-${item.id}">
+          <div class="caption-box">
+            <div class="caption-label">Legenda para o Instagram</div>
+            <div class="caption-text" id="caption-text-${item.id}">${savedCaption || ''}</div>
+            <button class="copy-btn" onclick="copyCaption('${item.id}')">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V2zm2-1a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1V2a1 1 0 00-1-1H6zM2 5a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1v-1H9v1H2V6h1V5H2z"/></svg>
+              Copiar legenda
+            </button>
+          </div>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  }
+
+  updateStats(discardedToday.length);
+  renderComuns(allComuns);
+}
+
+async function approve(id) {
+  if (!CFG.isReady()) { openModal(); return; }
+
+  const simBtn     = document.getElementById('btn-sim-' + id);
+  const actions    = document.getElementById('actions-' + id);
+  const captionArea = document.getElementById('caption-' + id);
+  const captionText = document.getElementById('caption-text-' + id);
+
+  simBtn.disabled = true;
+  simBtn.innerHTML = `<span class="spinner"></span> Gerando...`;
+
+  const item = NEWS.find(n => n.id === id);
+  try {
+    const caption = await generateCaption(item);
+    if (!caption) { simBtn.disabled = false; return; }
+
+    await dbSaveLegenda(id, caption);
+
+    document.getElementById('card-' + id).classList.add('approved');
+    actions.style.display = 'none';
+    captionText.textContent = caption;
+    captionArea.classList.add('visible');
+
+    const allComuns = await dbLoadComuns();
+    updateStats(allComuns.filter(c => c.report_date === REPORT_DATE).length);
+  } catch (err) {
+    simBtn.disabled = false;
+    simBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l7.22-6.72a.75.75 0 011.56 0z"/></svg> Sim, gerar legenda`;
+    alert("Erro ao gerar legenda: " + err.message);
+  }
+}
+
+async function dismiss(id) {
+  const item = NEWS.find(n => n.id === id);
+  if (!item) return;
+  await dbInsertComun({ id: item.id, title: item.title, category: item.category, report_date: REPORT_DATE });
+  document.getElementById('card-' + id).classList.add('dismissed');
+  document.getElementById('card-' + id).style.display = 'none';
+  const allComuns = await dbLoadComuns();
+  comunsCount = allComuns.length;
+  updateStats(allComuns.filter(c => c.report_date === REPORT_DATE).length);
+  renderComuns(allComuns);
+}
+
+async function removeFromComuns(id) {
+  await dbDeleteComun(id);
+  const allComuns = await dbLoadComuns();
+  comunsCount = allComuns.length;
+  updateStats(allComuns.filter(c => c.report_date === REPORT_DATE).length);
+  renderComuns(allComuns);
+}
+
+async function resetToday() {
+  await dbDeleteComunsByDate(REPORT_DATE);
+  renderNews();
+}
+
+function renderComuns(items) {
+  const container = document.getElementById('comuns-list');
+  const empty     = document.getElementById('comuns-empty');
+  Array.from(container.querySelectorAll('.comuns-item')).forEach(el => el.remove());
+
+  if (!items || items.length === 0) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'comuns-item';
+    row.innerHTML = `
+      <div class="comuns-item-info">
+        <div class="comuns-item-meta">
+          <span class="comuns-date">${item.report_date}</span>
+          <span class="comuns-category">${item.category}</span>
+        </div>
+        <div class="comuns-title">${item.title}</div>
+      </div>
+      <button class="comuns-remove-btn" title="Remover" onclick="removeFromComuns('${item.id}')">×</button>`;
+    container.appendChild(row);
+  });
+}
+
+function renderObservations() {
+  document.getElementById('obs-box').innerHTML = OBSERVATIONS.map(obs => `
+    <div class="obs-item">
+      <div class="obs-dot"></div>
+      <div class="obs-text">${obs}</div>
+    </div>`).join('');
+}
+
+function copyCaption(id) {
+  const text = document.getElementById('caption-text-' + id)?.textContent || '';
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(`[onclick="copyCaption('${id}')"]`);
+    if (!btn) return;
+    const orig = btn.innerHTML;
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l7.22-6.72a.75.75 0 011.56 0z"/></svg> Copiado!`;
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = orig; }, 2000);
+  });
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+async function init() {
+  if (!CFG.isReady()) {
+    document.getElementById('setup-banner').classList.remove('hidden');
+    document.getElementById('news-list').innerHTML = '';
+    return;
+  }
+  document.getElementById('setup-banner').classList.add('hidden');
+  renderObservations();
+  await renderNews();
+}
+
+document.getElementById('header-date').textContent = REPORT_DATE;
+document.getElementById('footer-text').textContent = `Gerado automaticamente · Prefeitura de São Sebastião · ${REPORT_DATE}`;
+
+updateCfgBtn();
+initSupabase();
+init();
+</script>
+
+</body>
+</html>

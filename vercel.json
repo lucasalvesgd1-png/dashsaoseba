@@ -1,0 +1,7 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/relatorio.html" },
+    { "source": "/(.*)", "destination": "/relatorio.html" }
+  ]
+}
