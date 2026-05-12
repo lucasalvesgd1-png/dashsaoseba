@@ -449,15 +449,19 @@ function initSupabase() {
 async function dbLoadComuns() {
   if (!db) return [];
   const { data, error } = await db.from('comuns').select('*').order('created_at', { ascending: false });
-  return error ? [] : (data || []);
+  if (error) { showDbError('Erro ao carregar Comuns: ' + error.message); return []; }
+  return data || [];
 }
 async function dbInsertComun(item) {
-  if (!db) return;
-  await db.from('comuns').upsert({ id: item.id, title: item.title, category: item.category, report_date: item.report_date });
+  if (!db) { showDbError('Supabase não configurado. Configure as credenciais.'); return false; }
+  const { error } = await db.from('comuns').upsert({ id: item.id, title: item.title, category: item.category, report_date: item.report_date });
+  if (error) { showDbError('Erro ao salvar: ' + error.message); return false; }
+  return true;
 }
 async function dbDeleteComun(id) {
   if (!db) return;
-  await db.from('comuns').delete().eq('id', id);
+  const { error } = await db.from('comuns').delete().eq('id', id);
+  if (error) showDbError('Erro ao remover: ' + error.message);
 }
 async function dbDeleteComunsByDate(date) {
   if (!db) return;
@@ -471,7 +475,14 @@ async function dbLoadLegenda(newsId) {
 }
 async function dbSaveLegenda(newsId, caption) {
   if (!db) return;
-  await db.from('legendas').upsert({ news_id: newsId, report_date: REPORT_DATE, caption });
+  const { error } = await db.from('legendas').upsert({ news_id: newsId, report_date: REPORT_DATE, caption });
+  if (error) showDbError('Erro ao salvar legenda: ' + error.message);
+}
+
+function showDbError(msg) {
+  const banner = document.getElementById('setup-banner');
+  banner.classList.remove('hidden');
+  banner.innerHTML = `⚠ <span><strong>Erro de banco:</strong> ${msg} — verifique as credenciais em <strong>⚙ Configurar</strong>.</span>`;
 }
 
 // ─────────────────────────────────────────────
@@ -623,8 +634,8 @@ async function approve(id) {
 async function dismiss(id) {
   const item = NEWS.find(n => n.id === id);
   if (!item) return;
-  await dbInsertComun({ id: item.id, title: item.title, category: item.category, report_date: REPORT_DATE });
-  document.getElementById('card-' + id).classList.add('dismissed');
+  const ok = await dbInsertComun({ id: item.id, title: item.title, category: item.category, report_date: REPORT_DATE });
+  if (!ok) return;
   document.getElementById('card-' + id).style.display = 'none';
   const allComuns = await dbLoadComuns();
   comunsCount = allComuns.length;
