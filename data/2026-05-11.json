@@ -1,0 +1,51 @@
+{
+  "reportDate": "11 de maio de 2026",
+  "news": [
+    {
+      "id": "N1152026155338",
+      "title": "São Sebastião recebe certificação e integra novo SISMapa do Turismo Brasileiro 2026",
+      "category": "Turismo",
+      "summary": "São Sebastião se tornou a primeira cidade do Litoral Norte paulista a cumprir os novos requisitos do Mapa do Turismo Brasileiro, ingressando entre os 673 municípios reconhecidos pelo Ministério do Turismo. A certificação abre portas para investimentos federais prioritários na área."
+    },
+    {
+      "id": "N1152026155120",
+      "title": "PAT de São Sebastião disponibiliza mais de 100 vagas de emprego em diversas áreas nesta semana",
+      "category": "Emprego",
+      "summary": "O PAT abriu mais de 100 vagas em 44 funções diferentes, com destaque para oportunidades reservadas para pessoas com deficiência. As inscrições são presenciais nas três unidades do município, de segunda a sexta das 8h às 17h."
+    },
+    {
+      "id": "N1152026155014",
+      "title": "Fundo Social realiza ação especial de Dia das Mães e entrega cestas básicas para famílias em Cambury",
+      "category": "Fundo Social",
+      "summary": "O Fundo Social entregou cestas básicas, flores e chocolates para cerca de 75 famílias no Sertão de Cambury em homenagem ao Dia das Mães, reforçando o compromisso da gestão com populações vulneráveis."
+    },
+    {
+      "id": "N1152026154755",
+      "title": "Guarani Race movimenta Boraceia com esporte, natureza e cultura indígena em São Sebastião",
+      "category": "Esporte",
+      "summary": "A etapa YDJU da Guarani Race reuniu quase 700 participantes na Aldeia Guarani Rio Silveira, em Boraceia, combinando competição atlética com a cultura indígena Guarani. Atletas de São Sebastião dominaram o pódio."
+    },
+    {
+      "id": "N1152026154654",
+      "title": "Curso de Libras tem aula inaugural com ampla participação de munícipes em São Sebastião",
+      "category": "Educação",
+      "summary": "A Secretaria de Educação lançou um curso gratuito de Libras com mais de 120 participantes na aula inaugural, realizado em dois pontos da cidade. O objetivo é ampliar a inclusão da comunidade surda em espaços públicos."
+    },
+    {
+      "id": "N1152026154537",
+      "title": "Equipe de damas de São Sebastião conquista vaga na fase final dos Jogos Abertos da Juventude",
+      "category": "Esporte",
+      "summary": "A equipe de damas garantiu vaga na final do 41º Jogos Abertos da Juventude, que acontece em Barretos de 4 a 14 de junho. Oito jovens atletas representarão o município na competição estadual."
+    },
+    {
+      "id": "N1152026154354",
+      "title": "Projeto Jovens Naturalistas transforma praia em espaço de aprendizagem para estudantes",
+      "category": "Educação",
+      "summary": "A Prefeitura lançou o Projeto Jovens Naturalistas em parceria com o Cebimar/USP: 400 alunos do Ensino Fundamental terão aulas de ciências na praia sobre ecossistemas costeiros e sustentabilidade até agosto."
+    }
+  ],
+  "observations": [
+    "Site funcionando normalmente. As 7 notícias do dia estavam todas na primeira página do portal.",
+    "A notícia do Fundo Social menciona a ação ocorrendo em 15/05 (Dia das Mães) — pode ser publicada antecipando o evento."
+  ]
+}

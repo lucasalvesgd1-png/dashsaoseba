@@ -52,11 +52,22 @@
     .header-title { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
     .header-subtitle { font-size: 12px; color: var(--text-secondary); }
     .header-right { display: flex; align-items: center; gap: 8px; }
-    .header-badge {
-      font-size: 12px; color: var(--text-secondary);
+    .date-nav {
+      display: flex; align-items: center; gap: 4px;
       background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 4px 12px; white-space: nowrap;
+      border-radius: 20px; padding: 3px 4px 3px 10px;
     }
+    .date-nav-label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+    .date-nav-label.today { color: var(--accent); font-weight: 600; }
+    .nav-btn {
+      width: 24px; height: 24px; border-radius: 50%;
+      border: none; background: none; cursor: pointer;
+      color: var(--text-secondary); font-size: 14px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) { background: var(--border); color: var(--text-primary); }
+    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
     .cfg-btn {
       font-size: 12px; font-weight: 500; color: var(--text-secondary);
       background: none; border: 1px solid var(--border);
@@ -284,7 +295,11 @@
     </div>
     <div class="header-right">
       <button class="cfg-btn" id="cfg-btn" onclick="openModal()">⚙ Configurar</button>
-      <div class="header-badge" id="header-date">—</div>
+      <div class="date-nav">
+        <span class="date-nav-label" id="header-date">—</span>
+        <button class="nav-btn" id="btn-prev" onclick="navDay(-1)" title="Dia anterior">‹</button>
+        <button class="nav-btn" id="btn-next" onclick="navDay(1)" title="Próximo dia">›</button>
+      </div>
     </div>
   </div>
 </header>
@@ -341,11 +356,45 @@
 
 <script>
 // ─────────────────────────────────────────────
-// DADOS DO DIA — carregados do data.json
+// DADOS DO DIA — carregados dinamicamente
 // ─────────────────────────────────────────────
 let REPORT_DATE = "";
 let NEWS = [];
 let OBSERVATIONS = [];
+let AVAILABLE_DATES = [];  // ISO: ["2026-05-12", "2026-05-11"]
+let CURRENT_DATE_IDX = 0; // 0 = mais recente
+
+const MONTHS_PT = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+function isoToPortuguese(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${d} de ${MONTHS_PT[m-1]} de ${y}`;
+}
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+async function loadDateData(iso) {
+  const res = await fetch(`/data/${iso}.json?t=` + Date.now());
+  if (!res.ok) throw new Error('Sem dados para ' + iso);
+  return res.json();
+}
+
+async function navDay(direction) {
+  const newIdx = CURRENT_DATE_IDX + direction;
+  if (newIdx < 0 || newIdx >= AVAILABLE_DATES.length) return;
+  CURRENT_DATE_IDX = newIdx;
+  await loadAndRender(AVAILABLE_DATES[CURRENT_DATE_IDX]);
+}
+
+function updateNavButtons() {
+  document.getElementById('btn-prev').disabled = CURRENT_DATE_IDX >= AVAILABLE_DATES.length - 1;
+  document.getElementById('btn-next').disabled = CURRENT_DATE_IDX <= 0;
+  const label = document.getElementById('header-date');
+  const isToday = AVAILABLE_DATES[CURRENT_DATE_IDX] === todayISO();
+  label.className = 'date-nav-label' + (isToday ? ' today' : '');
+  label.textContent = isToday ? 'Hoje · ' + REPORT_DATE : REPORT_DATE;
+}
 
 // ─────────────────────────────────────────────
 // CONFIG (localStorage — fica no browser)
@@ -654,21 +703,21 @@ function copyCaption(id) {
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
-async function init() {
-  // carrega dados do dia
+async function loadAndRender(iso) {
+  document.getElementById('news-list').innerHTML =
+    '<div style="padding:32px;text-align:center;color:#aeaeb2;font-size:14px;">Carregando...</div>';
+
   try {
-    const res = await fetch('/data.json?t=' + Date.now());
-    const data = await res.json();
-    REPORT_DATE   = data.reportDate;
-    NEWS          = data.news;
-    OBSERVATIONS  = data.observations;
+    const data = await loadDateData(iso);
+    REPORT_DATE  = data.reportDate;
+    NEWS         = data.news;
+    OBSERVATIONS = data.observations;
   } catch(e) {
     document.getElementById('news-list').innerHTML =
-      '<div style="padding:32px;text-align:center;color:#6e6e73;font-size:14px;">Erro ao carregar notícias do dia.</div>';
+      '<div style="padding:32px;text-align:center;color:#6e6e73;font-size:14px;">Sem dados para este dia.</div>';
     return;
   }
 
-  document.getElementById('header-date').textContent = REPORT_DATE;
   document.getElementById('footer-text').textContent =
     `Gerado automaticamente · Prefeitura de São Sebastião · ${REPORT_DATE}`;
 
@@ -678,8 +727,27 @@ async function init() {
     document.getElementById('setup-banner').classList.add('hidden');
   }
 
+  updateNavButtons();
   renderObservations();
   await renderNews();
+}
+
+async function init() {
+  try {
+    const res = await fetch('/dates.json?t=' + Date.now());
+    AVAILABLE_DATES = await res.json();
+  } catch(e) {
+    AVAILABLE_DATES = [];
+  }
+
+  // começa no dia mais recente
+  CURRENT_DATE_IDX = 0;
+  if (AVAILABLE_DATES.length > 0) {
+    await loadAndRender(AVAILABLE_DATES[0]);
+  } else {
+    document.getElementById('news-list').innerHTML =
+      '<div style="padding:32px;text-align:center;color:#6e6e73;font-size:14px;">Nenhum dado disponível ainda.</div>';
+  }
 }
 
 updateCfgBtn();

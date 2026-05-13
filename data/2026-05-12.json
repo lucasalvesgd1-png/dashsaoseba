@@ -1,0 +1,75 @@
+{
+  "reportDate": "12 de maio de 2026",
+  "news": [
+    {
+      "id": "N1252026171856",
+      "title": "Parto de emergência em USF mobiliza rede de saúde e garante nascimento seguro",
+      "category": "Saúde",
+      "summary": "Um parto inesperado na USF Jaraguá exigiu ação imediata dos profissionais de saúde locais. Com a transferência hospitalar impossível, o médico Dr. Danilo Romero realizou o parto com sucesso, e mãe e bebê foram encaminhados ao HCSS em boas condições. Foi o primeiro parto realizado em uma Unidade de Saúde da Família de São Sebastião."
+    },
+    {
+      "id": "N1252026171655",
+      "title": "Prefeitura e Polícia Civil intensificam ações contra grilagem de terrenos na Costa Sul",
+      "category": "Segurança Urbana",
+      "summary": "A Prefeitura e a Polícia Civil deflagraram a Operação Sufoco contra venda ilegal de terrenos na Costa Sul, com apreensão de celulares, documentos e contratos suspeitos. A força-tarefa reúne oito secretarias e autoridades policiais para combater ocupações irregulares e preservar a ordem territorial. Construções em áreas irregulares estão sujeitas a sanções e demolição."
+    },
+    {
+      "id": "N1252026171413",
+      "title": "Festival Todas as Danças 2026 reúne espetáculos, competição e companhias de dança",
+      "category": "Cultura",
+      "summary": "São Sebastião receberá o Festival Todas as Danças de 20 a 24 de maio, com apresentações, competições e intervenções artísticas em vários pontos da cidade. O evento beneficia bailarinos, coreógrafos e companhias de diversas regiões, com entrada mediante doação de alimentos. A iniciativa posiciona São Sebastião como destino de arte e cultura."
+    },
+    {
+      "id": "N1252026171050",
+      "title": "Polícia Municipal fortalece atendimento ao turismo com agentes bilíngues",
+      "category": "Segurança Urbana",
+      "summary": "A Guarda Municipal de São Sebastião implantou um programa de identificação de agentes fluentes em idiomas estrangeiros, com oito policiais reconhecidos em inglês, espanhol, francês e japonês. A iniciativa melhora o atendimento a turistas nacionais e internacionais. É mais um passo no compromisso da cidade com segurança e excelência no serviço público."
+    },
+    {
+      "id": "N125202617825",
+      "title": "São Sebastião orienta produtores rurais sobre chamadas públicas do PNAE",
+      "category": "Desenvolvimento Econômico",
+      "summary": "A Prefeitura orientou produtores da agricultura familiar sobre como participar das chamadas públicas do Programa Nacional de Alimentação Escolar, fortalecendo a compra de alimentos locais como banana, mandioca e verduras para as escolas municipais. A iniciativa beneficia agricultores com suporte técnico do Sebrae e garante refeições mais frescas e nutritivas para os estudantes."
+    },
+    {
+      "id": "N125202617528",
+      "title": "Ação móvel leva Cadastro Único, CIP e PAT ao bairro Jaraguá",
+      "category": "Desenvolvimento Econômico",
+      "summary": "A Prefeitura realizou ação descentralizada no Jaraguá oferecendo acesso ao Cadastro Único, ao Centro Integrado Profissional e ao Posto de Atendimento ao Trabalhador em um único local. A iniciativa reduz barreiras para famílias de baixa renda acessarem programas sociais e oportunidades de emprego e capacitação profissional."
+    },
+    {
+      "id": "N125202617341",
+      "title": "Projeto RegenerAção 2026 promove educação ambiental e biodiversidade nas escolas",
+      "category": "Educação",
+      "summary": "A Prefeitura lançou o projeto RegenerAção 2026, que usa as aves como tema central para ensinar estudantes sobre dispersão de sementes e recuperação de ecossistemas. O projeto envolve quatro secretarias municipais e aborda os impactos da tragédia climática de 2023. Alunos da rede municipal participam de atividades investigativas sobre regeneração ambiental."
+    },
+    {
+      "id": "N125202617022",
+      "title": "Instituto de Previdência realiza audiência pública de prestação de contas",
+      "category": "Administração",
+      "summary": "O SSPrev realizou audiência pública apresentando os dados financeiros de 2025 para servidores ativos, aposentados e a população em geral. O presidente destacou que a transparência é um compromisso com os servidores e cidadãos, não apenas uma obrigação legal. A iniciativa reforça a gestão responsável e transparente da previdência municipal."
+    },
+    {
+      "id": "N1252026165713",
+      "title": "Sepedi promove Baile Flashback 60+ para idosos da Costa Norte e Costa Sul",
+      "category": "Terceira Idade",
+      "summary": "A Secretaria para Pessoas com Deficiência e do Idoso organizou bailes para a terceira idade nos dias 15 e 29 de maio, com música ao vivo, atendendo moradores das duas regiões do município. A ação fortalece os vínculos comunitários e melhora a qualidade de vida dos idosos de São Sebastião através de cultura e lazer."
+    },
+    {
+      "id": "N1252026165551",
+      "title": "Real Família e Unidos de Caraguá vencem semifinais do Campeonato 50+",
+      "category": "Esporte",
+      "summary": "As equipes Real Família e Unidos de Caraguá venceram as semifinais e garantiram vaga na final do Campeonato de Futebol 50+, que acontece no próximo sábado às 14h no Estádio Municipal Otoniel Santos. A competição, que voltou ao calendário esportivo municipal neste ano, beneficia atletas veteranos com participação ativa no esporte organizado."
+    },
+    {
+      "id": "N1252026165435",
+      "title": "Educadoras visitam Museu Afro Brasil para fortalecer educação antirracista",
+      "category": "Educação",
+      "summary": "Professores e gestores da rede municipal visitaram o Museu Afro Brasil em São Paulo para aprimorar práticas pedagógicas antirracistas e celebrar a cultura negra. A visita incluiu o lançamento do livro 'Benzô' e reforça o compromisso da cidade com uma educação inclusiva e representativa. A iniciativa integra a agenda municipal de equidade racial nas escolas."
+    }
+  ],
+  "observations": [
+    "Site funcionando normalmente. 11 notícias publicadas em 12 de maio de 2026.",
+    "Algumas notícias mencionam eventos futuros (Festival Todas as Danças em 20-24/05, Baile 60+ em 15 e 29/05, Final do Campeonato 50+ no próximo sábado) — boas oportunidades de posts antecipados."
+  ]
+}
